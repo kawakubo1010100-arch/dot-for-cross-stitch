@@ -21,7 +21,7 @@ HISTORY_LIMIT = 30
 SECRET_CODE = "stitch-pro-2026"
 WIDTH_FREE = 30
 COLORS_FREE = 4
-NOTE_URL = "https://note.com/your-note-url-here"
+NOTE_URL = "https://note.com/1010100_nohunohu/n/n671e09605d99"
 APP_SHARE_URL = "https://your-app.streamlit.app"
 
 
