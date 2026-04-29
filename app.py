@@ -36,25 +36,28 @@ def _check_pro() -> bool:
 
 
 def _is_within_free_limit(
-    width: int | None, height: int | None, max_colors: int
+    slider_w: int | None, slider_h: int | None, max_colors: int
 ) -> bool:
-    w_ok = (width or 0) <= WIDTH_FREE
-    h_ok = (height or 0) <= WIDTH_FREE
-    c_ok = max_colors <= COLORS_FREE
-    return w_ok and h_ok and c_ok
+    if max_colors > COLORS_FREE:
+        return False
+    if slider_w is not None and slider_w > WIDTH_FREE:
+        return False
+    if slider_h is not None and slider_h > WIDTH_FREE:
+        return False
+    return True
 
 
-def _add_watermark(img: Image.Image, text: str = "サンプル 解除コードで購入") -> Image.Image:
+def _add_watermark(img: Image.Image, text: str = "サンプル") -> Image.Image:
     base = img.convert("RGBA")
     overlay = Image.new("RGBA", base.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(overlay)
-    font_size = max(70, int(min(base.size) * 0.11))
+    font_size = max(60, int(min(base.size) * 0.09))
     font = _get_font(font_size)
-    step_x = int(font_size * 4.0)
-    step_y = int(font_size * 2.2)
-    for y in range(-step_y * 2, base.height + step_y * 2, step_y):
-        for x in range(-step_x * 2, base.width + step_x * 2, step_x):
-            draw.text((x, y), text, fill=(220, 30, 30, 175), font=font)
+    step_x = int(font_size * 6)
+    step_y = int(font_size * 4)
+    for y in range(-step_y, base.height + step_y, step_y):
+        for x in range(-step_x, base.width + step_x, step_x):
+            draw.text((x, y), text, fill=(220, 30, 30, 150), font=font)
     overlay = overlay.rotate(28, expand=False)
     out = Image.alpha_composite(base, overlay)
     return out.convert("RGB")
@@ -277,14 +280,11 @@ def _render_sidebar() -> dict:
                     f"({cw} × {ch})"
                 )
 
-        if not is_pro and proj_w and proj_h and (
-            proj_w > WIDTH_FREE or proj_h > WIDTH_FREE
+        if not is_pro and (
+            (width_stitches and width_stitches > WIDTH_FREE)
+            or (height_stitches and height_stitches > WIDTH_FREE)
         ):
-            st.warning(
-                t("over_size_limit", lang).format(
-                    w=WIDTH_FREE, pw=proj_w, ph=proj_h
-                )
-            )
+            st.warning(t("over_size_limit", lang).format(w=WIDTH_FREE))
 
         max_colors = st.slider(t("max_colors", lang), 2, 30, 4)
         if not is_pro and max_colors > COLORS_FREE:
@@ -546,7 +546,7 @@ def _render_pattern_tab(params: dict) -> None:
 
     is_pro = params["is_pro"]
     within_free = _is_within_free_limit(
-        pattern.width_stitches, pattern.height_stitches, len(pattern.colors)
+        params["width_stitches"], params["height_stitches"], params["max_colors"]
     )
     can_export = is_pro or within_free
     show_watermark = not can_export
