@@ -146,7 +146,7 @@ def _render_sidebar() -> dict:
                 w_cm = cw / fabric_count * 2.54
                 h_cm = ch / fabric_count * 2.54
                 st.info(
-                    f"📐 {t('info_finished', lang)}: "
+                    f"📐 {t('info_canvas', lang)}: "
                     f"**{w_cm:.1f} × {h_cm:.1f} cm**  "
                     f"({cw} × {ch})"
                 )
@@ -412,13 +412,16 @@ def _render_pattern_tab(params: dict) -> None:
         st.image(preview_img)
     with col2:
         st.subheader(t("pattern_info", lang))
-        size_cm = pattern.finished_size_cm
+        canvas_cm = pattern.canvas_size_cm
+        drawn_cm = pattern.drawn_size_cm
+        drawn_w_st, drawn_h_st = pattern.drawn_bbox_stitches
         st.markdown(
             f"""
             - **{t('info_title', lang)}**: {pattern.title}
             - **{t('info_stitches', lang)}**: {pattern.width_stitches} × {pattern.height_stitches}
             - **{t('info_fabric', lang)}**: {pattern.fabric_count}-count {t('info_aida', lang)}
-            - **{t('info_finished', lang)}**: {size_cm[0]} × {size_cm[1]} cm
+            - **{t('info_canvas', lang)}**: {canvas_cm[0]} × {canvas_cm[1]} cm
+            - **{t('info_drawn', lang)}**: {drawn_cm[0]} × {drawn_cm[1]} cm  ({drawn_w_st} × {drawn_h_st})
             - **{t('info_colors', lang)}**: {len(pattern.colors)}{t('color_count_unit', lang)}
             - **{t('info_strand', lang)}**: {pattern.strand_count}{t('strand_unit', lang)}
             """

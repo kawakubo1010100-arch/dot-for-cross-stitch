@@ -44,9 +44,31 @@ class PatternData:
             self.substitutes = [False] * len(self.colors)
 
     @property
-    def finished_size_cm(self) -> tuple[float, float]:
+    def canvas_size_cm(self) -> tuple[float, float]:
         w = self.width_stitches / self.fabric_count * 2.54
         h = self.height_stitches / self.fabric_count * 2.54
+        return (round(w, 1), round(h, 1))
+
+    @property
+    def finished_size_cm(self) -> tuple[float, float]:
+        return self.canvas_size_cm
+
+    @property
+    def drawn_bbox_stitches(self) -> tuple[int, int]:
+        drawn = self.grid >= 0
+        if not drawn.any():
+            return (0, 0)
+        rows = np.any(drawn, axis=1)
+        cols = np.any(drawn, axis=0)
+        rmin, rmax = int(np.argmax(rows)), int(len(rows) - 1 - np.argmax(rows[::-1]))
+        cmin, cmax = int(np.argmax(cols)), int(len(cols) - 1 - np.argmax(cols[::-1]))
+        return (cmax - cmin + 1, rmax - rmin + 1)
+
+    @property
+    def drawn_size_cm(self) -> tuple[float, float]:
+        dw, dh = self.drawn_bbox_stitches
+        w = dw / self.fabric_count * 2.54
+        h = dh / self.fabric_count * 2.54
         return (round(w, 1), round(h, 1))
 
 

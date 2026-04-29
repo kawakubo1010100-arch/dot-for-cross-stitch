@@ -267,16 +267,20 @@ def render_legend(
 
 
 def render_info(pattern: PatternData, lang: str = "ja") -> Image.Image:
+    canvas_cm = pattern.canvas_size_cm
+    drawn_cm = pattern.drawn_size_cm
+    dw, dh = pattern.drawn_bbox_stitches
     lines = [
         f"{t('info_title', lang)}: {pattern.title}",
         f"{t('info_fabric', lang)}: {pattern.fabric_count}-count {t('info_aida', lang)}",
         f"{t('info_stitches', lang)}: {pattern.width_stitches} × {pattern.height_stitches}",
-        f"{t('info_finished', lang)}: {pattern.finished_size_cm[0]} × {pattern.finished_size_cm[1]} cm",
+        f"{t('info_canvas', lang)}: {canvas_cm[0]} × {canvas_cm[1]} cm",
+        f"{t('info_drawn', lang)}: {drawn_cm[0]} × {drawn_cm[1]} cm  ({dw} × {dh})",
         f"{t('info_colors', lang)}: {len(pattern.colors)}{t('color_count_unit', lang)}",
     ]
     line_h = 24
     img_h = len(lines) * line_h + 20
-    img = Image.new("RGB", (400, img_h), BG_COLOR)
+    img = Image.new("RGB", (460, img_h), BG_COLOR)
     draw = ImageDraw.Draw(img)
     font = _get_font(13)
 
