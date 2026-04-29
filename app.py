@@ -44,18 +44,18 @@ def _is_within_free_limit(
     return w_ok and h_ok and c_ok
 
 
-def _add_watermark(img: Image.Image, text: str = "サンプル") -> Image.Image:
+def _add_watermark(img: Image.Image, text: str = "サンプル 解除コードで購入") -> Image.Image:
     base = img.convert("RGBA")
     overlay = Image.new("RGBA", base.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(overlay)
-    font_size = max(40, int(min(base.size) * 0.08))
+    font_size = max(70, int(min(base.size) * 0.11))
     font = _get_font(font_size)
-    step_x = font_size * 6
-    step_y = font_size * 4
-    for y in range(-step_y, base.height + step_y, step_y):
-        for x in range(-step_x, base.width + step_x, step_x):
-            draw.text((x, y), text, fill=(220, 30, 30, 90), font=font)
-    overlay = overlay.rotate(30, expand=False)
+    step_x = int(font_size * 4.0)
+    step_y = int(font_size * 2.2)
+    for y in range(-step_y * 2, base.height + step_y * 2, step_y):
+        for x in range(-step_x * 2, base.width + step_x * 2, step_x):
+            draw.text((x, y), text, fill=(220, 30, 30, 175), font=font)
+    overlay = overlay.rotate(28, expand=False)
     out = Image.alpha_composite(base, overlay)
     return out.convert("RGB")
 
@@ -249,14 +249,6 @@ def _render_sidebar() -> dict:
             width_stitches = st.slider(t("width_stitches", lang), 20, 300, 30)
             height_stitches = st.slider(t("height_stitches", lang), 20, 300, 30)
 
-        if not is_pro and (
-            (width_stitches and width_stitches > WIDTH_FREE)
-            or (height_stitches and height_stitches > WIDTH_FREE)
-        ):
-            st.warning(
-                t("over_size_limit", lang).format(w=WIDTH_FREE)
-            )
-
         fabric_count = st.selectbox(
             t("fabric_count", lang),
             [11, 14, 16, 18, 22],
@@ -265,6 +257,7 @@ def _render_sidebar() -> dict:
         )
 
         src = st.session_state.source
+        proj_w, proj_h = None, None
         if src is not None:
             sh, sw = src.shape
             aspect = sw / sh
@@ -274,6 +267,7 @@ def _render_sidebar() -> dict:
                 ch = max(1, round(cw / aspect))
             elif ch and not cw:
                 cw = max(1, round(ch * aspect))
+            proj_w, proj_h = cw, ch
             if cw and ch:
                 w_cm = cw / fabric_count * 2.54
                 h_cm = ch / fabric_count * 2.54
@@ -282,6 +276,15 @@ def _render_sidebar() -> dict:
                     f"**{w_cm:.1f} × {h_cm:.1f} cm**  "
                     f"({cw} × {ch})"
                 )
+
+        if not is_pro and proj_w and proj_h and (
+            proj_w > WIDTH_FREE or proj_h > WIDTH_FREE
+        ):
+            st.warning(
+                t("over_size_limit", lang).format(
+                    w=WIDTH_FREE, pw=proj_w, ph=proj_h
+                )
+            )
 
         max_colors = st.slider(t("max_colors", lang), 2, 30, 4)
         if not is_pro and max_colors > COLORS_FREE:
@@ -584,34 +587,29 @@ def _render_pattern_tab(params: dict) -> None:
 
     st.subheader(t("downloads", lang))
     d1, d2, d3 = st.columns(3)
+
+    chart_for_dl = chart_display
     with d1:
-        if can_export:
-            buf = io.BytesIO()
-            chart_img.save(buf, format="PNG")
-            st.download_button(
-                t("dl_chart_png", lang), data=buf.getvalue(),
-                file_name=f"{params['title']}_chart.png", mime="image/png",
-                use_container_width=True,
-            )
-        else:
-            st.button(
-                f"🔒 {t('dl_chart_png', lang)}", disabled=True,
-                use_container_width=True,
-            )
+        buf = io.BytesIO()
+        chart_for_dl.save(buf, format="PNG")
+        label = t("dl_chart_png", lang)
+        if not can_export:
+            label = f"{label}（{t('with_watermark', lang)}）"
+        st.download_button(
+            label, data=buf.getvalue(),
+            file_name=f"{params['title']}_chart.png", mime="image/png",
+            use_container_width=True,
+        )
+
     with d2:
-        if can_export:
-            buf = io.BytesIO()
-            preview_img.save(buf, format="PNG")
-            st.download_button(
-                t("dl_preview_png", lang), data=buf.getvalue(),
-                file_name=f"{params['title']}_preview.png", mime="image/png",
-                use_container_width=True,
-            )
-        else:
-            st.button(
-                f"🔒 {t('dl_preview_png', lang)}", disabled=True,
-                use_container_width=True,
-            )
+        buf = io.BytesIO()
+        preview_img.save(buf, format="PNG")
+        st.download_button(
+            t("dl_preview_png", lang), data=buf.getvalue(),
+            file_name=f"{params['title']}_preview.png", mime="image/png",
+            use_container_width=True,
+        )
+
     with d3:
         if can_export:
             pdf_bytes = generate_pdf(
@@ -626,6 +624,7 @@ def _render_pattern_tab(params: dict) -> None:
             st.button(
                 f"🔒 {t('dl_pdf', lang)}", disabled=True,
                 use_container_width=True,
+                help=t("pdf_paid_only", lang),
             )
 
     st.subheader(t("share_section", lang))
