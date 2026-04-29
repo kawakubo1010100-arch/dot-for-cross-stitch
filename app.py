@@ -404,7 +404,7 @@ def _render_pattern_tab(params: dict) -> None:
     col1, col2 = st.columns(2)
     with col1:
         st.subheader(t("preview_color", lang))
-        st.image(preview_img, use_container_width=True)
+        st.image(preview_img)
     with col2:
         st.subheader(t("pattern_info", lang))
         size_cm = pattern.finished_size_cm
@@ -420,10 +420,10 @@ def _render_pattern_tab(params: dict) -> None:
         )
 
     st.subheader(t("chart", lang))
-    st.image(chart_img, use_container_width=True)
+    st.image(chart_img)
 
     st.subheader(t("legend", lang))
-    st.image(legend_img, use_container_width=True)
+    st.image(legend_img)
 
     st.subheader(t("downloads", lang))
     d1, d2, d3 = st.columns(3)
