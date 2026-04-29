@@ -74,6 +74,7 @@ def _on_new_image(image_bytes: bytes) -> None:
     st.session_state.widget_seq += 1
     st.session_state.last_click_sig = None
     st.session_state.last_drag_sig = None
+    st.session_state.last_imported_mask = None
 
 
 def _render_sidebar() -> dict:
@@ -290,11 +291,14 @@ def _render_bg_editor_tab(params: dict) -> None:
             t("import_mask", lang), type=["png"], key="mask_upload"
         )
         if imported is not None:
-            new_mask = bg.png_bytes_to_mask(imported.read(), (sh, sw))
-            if new_mask is not None:
-                _apply_mask_change(new_mask)
-                _bump()
-                st.rerun()
+            file_id = (imported.name, imported.size)
+            if st.session_state.get("last_imported_mask") != file_id:
+                st.session_state.last_imported_mask = file_id
+                new_mask = bg.png_bytes_to_mask(imported.read(), (sh, sw))
+                if new_mask is not None:
+                    _apply_mask_change(new_mask)
+                    _bump()
+                    st.rerun()
 
     with col_l:
         view_img = bg.render_editor_view(src.pixels, mask, scale=scale)
