@@ -131,7 +131,8 @@ def _draw_chart_pages(
     cw, ch = chart_image.size
 
     single_scale = min(usable_w / cw, usable_h / ch)
-    if single_scale * cw >= cw * 0.3:
+    cell_pt_on_single_page = single_scale * 24
+    if cell_pt_on_single_page >= 4.0:
         draw_w = cw * single_scale
         draw_h = ch * single_scale
         x = (page_w - draw_w) / 2
@@ -144,12 +145,21 @@ def _draw_chart_pages(
         c.showPage()
         return
 
-    tile_w_px = int(usable_w / single_scale) if single_scale > 0 else cw
-    tile_h_px = int(usable_h / single_scale) if single_scale > 0 else ch
+    import math
+    target_cell_pt = 6.0
+    tile_scale_target = target_cell_pt / 24
+    tile_w_px = max(1, int(usable_w / tile_scale_target))
+    tile_h_px = max(1, int(usable_h / tile_scale_target))
     overlap = 50
 
-    col_count = max(1, (cw + tile_w_px - overlap - 1) // (tile_w_px - overlap))
-    row_count = max(1, (ch + tile_h_px - overlap - 1) // (tile_h_px - overlap))
+    if cw <= tile_w_px:
+        col_count = 1
+    else:
+        col_count = max(1, math.ceil((cw - overlap) / (tile_w_px - overlap)))
+    if ch <= tile_h_px:
+        row_count = 1
+    else:
+        row_count = max(1, math.ceil((ch - overlap) / (tile_h_px - overlap)))
 
     for tr in range(row_count):
         for tc in range(col_count):

@@ -225,6 +225,13 @@ def _render_bg_editor_tab(params: dict) -> None:
             horizontal=True,
         )
 
+        prev_tool = st.session_state.get("prev_tool_mode")
+        if prev_tool != tool_mode:
+            st.session_state.prev_tool_mode = tool_mode
+            if prev_tool is not None:
+                st.session_state.processed_rect_count = 0
+                st.rerun()
+
         tolerance = st.slider(
             t("tolerance", lang), 0, 80, 10,
             help=t("tolerance_help", lang),
@@ -325,7 +332,8 @@ def _render_bg_editor_tab(params: dict) -> None:
                     st.rerun()
         else:
             clicked = streamlit_image_coordinates(
-                view_img, key=f"editor_canvas_{sh}x{sw}_{scale}"
+                view_img,
+                key=f"editor_click_{tool_mode}_{sh}x{sw}_{scale}",
             )
 
             if clicked is not None:
