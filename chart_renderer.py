@@ -169,14 +169,30 @@ def render_legend(
     draw.text((10, 8), strand_text, fill=(0, 0, 0), font=font_title)
 
     y = header_h - 20
-    headers = [t("header_symbol", lang), t("header_dmc", lang)]
-    if thread_system in ("olympus", "both"):
-        headers.append(t("header_oly", lang))
-    headers.extend([t("header_color_name", lang), t("header_thread_amount", lang)])
-
-    if thread_system in ("olympus", "both"):
+    if thread_system == "olympus":
+        headers = [
+            t("header_symbol", lang),
+            t("header_oly", lang),
+            t("header_color_name", lang),
+            t("header_thread_amount", lang),
+        ]
+        col_x = [10, 50, 350, 700]
+    elif thread_system == "both":
+        headers = [
+            t("header_symbol", lang),
+            t("header_dmc", lang),
+            t("header_oly", lang),
+            t("header_color_name", lang),
+            t("header_thread_amount", lang),
+        ]
         col_x = [10, 50, 100, 360, 700]
     else:
+        headers = [
+            t("header_symbol", lang),
+            t("header_dmc", lang),
+            t("header_color_name", lang),
+            t("header_thread_amount", lang),
+        ]
         col_x = [10, 50, 100, 600]
 
     for i, hdr in enumerate(headers):
@@ -186,27 +202,27 @@ def render_legend(
 
     draw.line([(10, y - 4), (legend_w - 10, y - 4)], fill=(180, 180, 180), width=1)
 
+    substitute_label = t("substitute_mark", lang)
+
     for i, dmc in enumerate(pattern.colors):
         sym = pattern.symbols[i]
         length = pattern.thread_lengths[i]
+        is_sub = pattern.substitutes[i] if i < len(pattern.substitutes) else False
 
         draw.rectangle(
             [col_x[0], y + 2, col_x[0] + 20, y + row_h - 4],
             fill=dmc.rgb, outline=(0, 0, 0),
         )
         bbox = draw.textbbox((0, 0), sym, font=font)
-        sw = bbox[2] - bbox[0]
+        sw_box = bbox[2] - bbox[0]
         draw.text(
-            (col_x[0] + 10 - sw // 2, y + 4), sym,
+            (col_x[0] + 10 - sw_box // 2, y + 4), sym,
             fill=(255, 255, 255) if sum(dmc.rgb) < 384 else (0, 0, 0),
             font=font,
         )
 
         ci = 1
-        draw.text((col_x[ci], y + 4), dmc.dmc, fill=(0, 0, 0), font=font)
-        ci += 1
-
-        if thread_system in ("olympus", "both"):
+        if thread_system == "olympus":
             entry = dmc_to_olympus(dmc.dmc)
             if entry is None:
                 oly_text = "-"
@@ -214,11 +230,30 @@ def render_legend(
                 oly_text = f"{entry.number}  {entry.name_ja}"
             else:
                 oly_text = entry.number
+            if is_sub:
+                oly_text = f"{oly_text}  ({substitute_label})"
             draw.text(
                 (col_x[ci], y + 4), oly_text,
-                fill=(0, 0, 0), font=font,
+                fill=(180, 80, 0) if is_sub else (0, 0, 0),
+                font=font,
             )
             ci += 1
+        else:
+            draw.text((col_x[ci], y + 4), dmc.dmc, fill=(0, 0, 0), font=font)
+            ci += 1
+            if thread_system == "both":
+                entry = dmc_to_olympus(dmc.dmc)
+                if entry is None:
+                    oly_text = "-"
+                elif entry.name_ja and lang == "ja":
+                    oly_text = f"{entry.number}  {entry.name_ja}"
+                else:
+                    oly_text = entry.number
+                draw.text(
+                    (col_x[ci], y + 4), oly_text,
+                    fill=(0, 0, 0), font=font,
+                )
+                ci += 1
 
         draw.text((col_x[ci], y + 4), dmc.name, fill=(0, 0, 0), font=font)
         ci += 1

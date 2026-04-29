@@ -390,6 +390,7 @@ def _render_pattern_tab(params: dict) -> None:
                 fabric_count=params["fabric_count"],
                 strand_count=params["strand_count"],
                 title=params["title"],
+                thread_system=params["thread_system"],
             )
             st.session_state.pattern = pattern
 

@@ -135,7 +135,9 @@ def ciede2000(
 
 
 def find_nearest(
-    r: int, g: int, b: int, exclude: set[str] | None = None
+    r: int, g: int, b: int,
+    exclude: set[str] | None = None,
+    allow_only: set[str] | None = None,
 ) -> DMCColor:
     db = load_dmc_database()
     lab = rgb_to_lab(r, g, b)
@@ -144,21 +146,47 @@ def find_nearest(
     for dmc in db:
         if exclude and dmc.dmc in exclude:
             continue
+        if allow_only is not None and dmc.dmc not in allow_only:
+            continue
         d = ciede2000(lab, rgb_to_lab(dmc.r, dmc.g, dmc.b))
         if d < best_dist:
             best_dist = d
             best = dmc
+    if best is None:
+        for dmc in db:
+            if exclude and dmc.dmc in exclude:
+                continue
+            d = ciede2000(lab, rgb_to_lab(dmc.r, dmc.g, dmc.b))
+            if d < best_dist:
+                best_dist = d
+                best = dmc
     assert best is not None
     return best
 
 
 def find_nearest_n(
     colors_rgb: list[tuple[int, int, int]],
-) -> list[DMCColor]:
+    thread_system: str = "dmc",
+) -> tuple[list[DMCColor], list[bool]]:
+    allow_only: set[str] | None = None
+    if thread_system == "olympus":
+        from olympus_convert import load_conversion_table
+        allow_only = set(load_conversion_table().keys())
+
     used: set[str] = set()
     result: list[DMCColor] = []
+    substitutes: list[bool] = []
     for r, g, b in colors_rgb:
-        dmc = find_nearest(r, g, b, exclude=used)
-        used.add(dmc.dmc)
-        result.append(dmc)
-    return result
+        if allow_only is not None:
+            unfiltered = find_nearest(r, g, b, exclude=used)
+            chosen = find_nearest(
+                r, g, b, exclude=used, allow_only=allow_only
+            )
+            is_sub = unfiltered.dmc not in allow_only
+        else:
+            chosen = find_nearest(r, g, b, exclude=used)
+            is_sub = False
+        used.add(chosen.dmc)
+        result.append(chosen)
+        substitutes.append(is_sub)
+    return result, substitutes

@@ -1,5 +1,6 @@
 import sys
-sys.path.insert(0, "F:/dot e")
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from dmc_colors import ciede2000, find_nearest, load_dmc_database, rgb_to_lab
 

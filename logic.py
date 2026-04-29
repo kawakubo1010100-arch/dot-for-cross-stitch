@@ -36,6 +36,12 @@ class PatternData:
     fabric_count: int
     strand_count: int
     title: str
+    substitutes: list[bool] = None  # type: ignore
+    thread_system: str = "both"
+
+    def __post_init__(self) -> None:
+        if self.substitutes is None:
+            self.substitutes = [False] * len(self.colors)
 
     @property
     def finished_size_cm(self) -> tuple[float, float]:
@@ -153,6 +159,7 @@ def generate_pattern(
     fabric_count: int = 14,
     strand_count: int = 3,
     title: str = "クロスステッチ図案",
+    thread_system: str = "both",
 ) -> PatternData:
     pixels, mask = _resize_with_mask(source, width_stitches, height_stitches)
     actual_h, actual_w = pixels.shape[:2]
@@ -161,7 +168,12 @@ def generate_pattern(
     n_actual_colors = len(centers_rgb)
 
     color_tuples = [(int(c[0]), int(c[1]), int(c[2])) for c in centers_rgb]
-    dmc_colors = find_nearest_n(color_tuples) if color_tuples else []
+    if color_tuples:
+        dmc_colors, substitutes = find_nearest_n(
+            color_tuples, thread_system=thread_system
+        )
+    else:
+        dmc_colors, substitutes = [], []
 
     syms = assign_symbols(grid, n_actual_colors)
 
@@ -181,6 +193,8 @@ def generate_pattern(
         fabric_count=fabric_count,
         strand_count=strand_count,
         title=title,
+        substitutes=substitutes,
+        thread_system=thread_system,
     )
 
 
@@ -220,7 +234,10 @@ def process_image(
     n_actual_colors = len(centers_rgb)
 
     color_tuples = [(int(c[0]), int(c[1]), int(c[2])) for c in centers_rgb]
-    dmc_colors = find_nearest_n(color_tuples) if color_tuples else []
+    if color_tuples:
+        dmc_colors, substitutes = find_nearest_n(color_tuples)
+    else:
+        dmc_colors, substitutes = [], []
 
     syms = assign_symbols(grid, n_actual_colors)
 
@@ -240,4 +257,5 @@ def process_image(
         fabric_count=fabric_count,
         strand_count=strand_count,
         title=title,
+        substitutes=substitutes,
     )
