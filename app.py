@@ -51,13 +51,19 @@ def _add_watermark(img: Image.Image, text: str = "サンプル") -> Image.Image:
     base = img.convert("RGBA")
     overlay = Image.new("RGBA", base.size, (255, 255, 255, 0))
     draw = ImageDraw.Draw(overlay)
-    font_size = max(60, int(min(base.size) * 0.09))
+    font_size = max(70, int(min(base.size) * 0.11))
     font = _get_font(font_size)
-    step_x = int(font_size * 6)
-    step_y = int(font_size * 4)
-    for y in range(-step_y, base.height + step_y, step_y):
-        for x in range(-step_x, base.width + step_x, step_x):
-            draw.text((x, y), text, fill=(220, 30, 30, 150), font=font)
+    step_x = int(font_size * 4.2)
+    step_y = int(font_size * 2.5)
+    for y in range(-step_y * 2, base.height + step_y * 2, step_y):
+        for x in range(-step_x * 2, base.width + step_x * 2, step_x):
+            draw.text(
+                (x, y), text,
+                fill=(180, 10, 10, 220),
+                font=font,
+                stroke_width=2,
+                stroke_fill=(120, 0, 0, 220),
+            )
     overlay = overlay.rotate(28, expand=False)
     out = Image.alpha_composite(base, overlay)
     return out.convert("RGB")
