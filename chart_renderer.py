@@ -69,8 +69,8 @@ def render_chart(pattern: PatternData) -> Image.Image:
             bbox = draw.textbbox((0, 0), sym, font=font_sym)
             tw = bbox[2] - bbox[0]
             th = bbox[3] - bbox[1]
-            tx = x0 + (CELL_SIZE - tw) // 2
-            ty = y0 + (CELL_SIZE - th) // 2
+            tx = x0 + (CELL_SIZE - tw) // 2 - bbox[0]
+            ty = y0 + (CELL_SIZE - th) // 2 - bbox[1]
             draw.text((tx, ty), sym, fill=text_color, font=font_sym)
 
     grid_x0 = MARGIN_LEFT

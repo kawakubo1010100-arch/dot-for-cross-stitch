@@ -36,6 +36,43 @@ def _pil_to_reportlab(img: Image.Image) -> BytesIO:
     return buf
 
 
+_jp_font_cache: str | None = None
+
+
+def _register_japanese_font() -> str | None:
+    global _jp_font_cache
+    if _jp_font_cache is not None:
+        return _jp_font_cache
+
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.cidfonts import UnicodeCIDFont
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    ttf_candidates = [
+        "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
+        "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
+        "/usr/share/fonts/truetype/ipafont-gothic/ipag.ttf",
+        "C:/Windows/Fonts/msgothic.ttc",
+        "C:/Windows/Fonts/meiryo.ttc",
+    ]
+    for fpath in ttf_candidates:
+        try:
+            pdfmetrics.registerFont(TTFont("JapaneseFont", fpath))
+            _jp_font_cache = "JapaneseFont"
+            return _jp_font_cache
+        except Exception:
+            continue
+
+    try:
+        pdfmetrics.registerFont(UnicodeCIDFont("HeiseiKakuGo-W5"))
+        _jp_font_cache = "HeiseiKakuGo-W5"
+        return _jp_font_cache
+    except Exception:
+        pass
+
+    return None
+
+
 def _draw_title_page(
     c: canvas.Canvas,
     pattern: PatternData,
@@ -49,36 +86,15 @@ def _draw_title_page(
 
     y = page_h - 30 * mm
 
-    font_candidates = [
-        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
-        "/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc",
-        "/usr/share/fonts/truetype/noto/NotoSansCJK-Regular.ttc",
-        "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
-        "C:/Windows/Fonts/msgothic.ttc",
-        "C:/Windows/Fonts/meiryo.ttc",
-    ]
-    font_registered = False
-    for fpath in font_candidates:
-        try:
-            from reportlab.pdfbase import pdfmetrics
-            from reportlab.pdfbase.ttfonts import TTFont
-            pdfmetrics.registerFont(TTFont("JapaneseFont", fpath))
-            c.setFont("JapaneseFont", 18)
-            font_registered = True
-            break
-        except Exception:
-            continue
+    jp_font_name = _register_japanese_font()
+    title_font = jp_font_name or "Helvetica-Bold"
+    body_font = jp_font_name or "Helvetica"
 
-    if not font_registered:
-        c.setFont("Helvetica-Bold", 18)
-
+    c.setFont(title_font, 18)
     c.drawCentredString(page_w / 2, y, pattern.title)
     y -= 10 * mm
 
-    if font_registered:
-        c.setFont("JapaneseFont", 10)
-    else:
-        c.setFont("Helvetica", 10)
+    c.setFont(body_font, 10)
     c.drawCentredString(page_w / 2, y, "クロス・ステッチ図案")
     y -= 15 * mm
 
