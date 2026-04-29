@@ -2,20 +2,62 @@ from __future__ import annotations
 
 import hashlib
 import io
+import urllib.parse
 
 import numpy as np
 import streamlit as st
 from PIL import Image
-from PIL import ImageDraw
+from PIL import ImageDraw, ImageFont
 from streamlit_image_coordinates import streamlit_image_coordinates
 
 import background_editor as bg
-from chart_renderer import render_chart, render_info, render_legend, render_preview
+from chart_renderer import render_chart, render_info, render_legend, render_preview, _get_font
 from i18n import detect_browser_language, t
 from logic import SourceData, generate_pattern, prepare_source
 from pdf_export import generate_pdf
 
 HISTORY_LIMIT = 30
+
+SECRET_CODE = "stitch-pro-2026"
+WIDTH_FREE = 30
+COLORS_FREE = 4
+NOTE_URL = "https://note.com/your-note-url-here"
+APP_SHARE_URL = "https://your-app.streamlit.app"
+
+
+def _check_pro() -> bool:
+    if st.session_state.get("is_pro"):
+        return True
+    code = st.query_params.get("key", "")
+    if code == SECRET_CODE:
+        st.session_state.is_pro = True
+        return True
+    return False
+
+
+def _is_within_free_limit(
+    width: int | None, height: int | None, max_colors: int
+) -> bool:
+    w_ok = (width or 0) <= WIDTH_FREE
+    h_ok = (height or 0) <= WIDTH_FREE
+    c_ok = max_colors <= COLORS_FREE
+    return w_ok and h_ok and c_ok
+
+
+def _add_watermark(img: Image.Image, text: str = "サンプル") -> Image.Image:
+    base = img.convert("RGBA")
+    overlay = Image.new("RGBA", base.size, (255, 255, 255, 0))
+    draw = ImageDraw.Draw(overlay)
+    font_size = max(40, int(min(base.size) * 0.08))
+    font = _get_font(font_size)
+    step_x = font_size * 6
+    step_y = font_size * 4
+    for y in range(-step_y, base.height + step_y, step_y):
+        for x in range(-step_x, base.width + step_x, step_x):
+            draw.text((x, y), text, fill=(220, 30, 30, 90), font=font)
+    overlay = overlay.rotate(30, expand=False)
+    out = Image.alpha_composite(base, overlay)
+    return out.convert("RGB")
 
 
 def _init_state() -> None:
@@ -79,8 +121,27 @@ def _on_new_image(image_bytes: bytes) -> None:
 
 def _render_sidebar() -> dict:
     lang = st.session_state.lang
+    is_pro = _check_pro()
 
     with st.sidebar:
+        if is_pro:
+            st.success(t("pro_active", lang))
+        else:
+            with st.expander(t("unlock_section", lang), expanded=False):
+                st.markdown(t("unlock_intro", lang).format(url=NOTE_URL))
+                code = st.text_input(t("unlock_code_label", lang), type="password")
+                if st.button(t("unlock_button", lang), use_container_width=True):
+                    if code == SECRET_CODE:
+                        st.session_state.is_pro = True
+                        st.query_params["key"] = code
+                        st.rerun()
+                    else:
+                        st.error(t("unlock_wrong", lang))
+
+        st.caption(
+            t("free_tier_summary", lang).format(w=WIDTH_FREE, c=COLORS_FREE)
+        )
+
         st.header(t("settings", lang))
 
         new_lang = st.selectbox(
@@ -118,12 +179,20 @@ def _render_sidebar() -> dict:
         width_stitches: int | None = None
         height_stitches: int | None = None
         if size_mode == "width":
-            width_stitches = st.slider(t("width_stitches", lang), 20, 300, 80)
+            width_stitches = st.slider(t("width_stitches", lang), 20, 300, 30)
         elif size_mode == "height":
-            height_stitches = st.slider(t("height_stitches", lang), 20, 300, 80)
+            height_stitches = st.slider(t("height_stitches", lang), 20, 300, 30)
         else:
-            width_stitches = st.slider(t("width_stitches", lang), 20, 300, 80)
-            height_stitches = st.slider(t("height_stitches", lang), 20, 300, 80)
+            width_stitches = st.slider(t("width_stitches", lang), 20, 300, 30)
+            height_stitches = st.slider(t("height_stitches", lang), 20, 300, 30)
+
+        if not is_pro and (
+            (width_stitches and width_stitches > WIDTH_FREE)
+            or (height_stitches and height_stitches > WIDTH_FREE)
+        ):
+            st.warning(
+                t("over_size_limit", lang).format(w=WIDTH_FREE)
+            )
 
         fabric_count = st.selectbox(
             t("fabric_count", lang),
@@ -151,7 +220,9 @@ def _render_sidebar() -> dict:
                     f"({cw} × {ch})"
                 )
 
-        max_colors = st.slider(t("max_colors", lang), 2, 30, 10)
+        max_colors = st.slider(t("max_colors", lang), 2, 30, 4)
+        if not is_pro and max_colors > COLORS_FREE:
+            st.warning(t("over_color_limit", lang).format(c=COLORS_FREE))
         strand_count = st.selectbox(t("strand_count", lang), [2, 3, 4], index=1)
         thread_system = st.selectbox(
             t("thread_system", lang),
@@ -165,6 +236,7 @@ def _render_sidebar() -> dict:
 
     return {
         "lang": lang,
+        "is_pro": is_pro,
         "title": title,
         "width_stitches": width_stitches,
         "height_stitches": height_stitches,
@@ -406,6 +478,20 @@ def _render_pattern_tab(params: dict) -> None:
     )
     info_img = render_info(pattern, lang=lang)
 
+    is_pro = params["is_pro"]
+    within_free = _is_within_free_limit(
+        pattern.width_stitches, pattern.height_stitches, len(pattern.colors)
+    )
+    can_export = is_pro or within_free
+    show_watermark = not can_export
+
+    chart_display = _add_watermark(chart_img) if show_watermark else chart_img
+
+    if not can_export:
+        st.info(t("preview_only_notice", lang).format(
+            w=WIDTH_FREE, c=COLORS_FREE, url=NOTE_URL
+        ))
+
     col1, col2 = st.columns(2)
     with col1:
         st.subheader(t("preview_color", lang))
@@ -428,7 +514,7 @@ def _render_pattern_tab(params: dict) -> None:
         )
 
     st.subheader(t("chart", lang))
-    st.image(chart_img)
+    st.image(chart_display)
 
     st.subheader(t("legend", lang))
     st.image(legend_img)
@@ -436,27 +522,75 @@ def _render_pattern_tab(params: dict) -> None:
     st.subheader(t("downloads", lang))
     d1, d2, d3 = st.columns(3)
     with d1:
-        buf = io.BytesIO()
-        chart_img.save(buf, format="PNG")
-        st.download_button(
-            t("dl_chart_png", lang), data=buf.getvalue(),
-            file_name=f"{params['title']}_chart.png", mime="image/png",
-        )
+        if can_export:
+            buf = io.BytesIO()
+            chart_img.save(buf, format="PNG")
+            st.download_button(
+                t("dl_chart_png", lang), data=buf.getvalue(),
+                file_name=f"{params['title']}_chart.png", mime="image/png",
+                use_container_width=True,
+            )
+        else:
+            st.button(
+                f"🔒 {t('dl_chart_png', lang)}", disabled=True,
+                use_container_width=True,
+            )
     with d2:
-        buf = io.BytesIO()
-        preview_img.save(buf, format="PNG")
-        st.download_button(
-            t("dl_preview_png", lang), data=buf.getvalue(),
-            file_name=f"{params['title']}_preview.png", mime="image/png",
-        )
+        if can_export:
+            buf = io.BytesIO()
+            preview_img.save(buf, format="PNG")
+            st.download_button(
+                t("dl_preview_png", lang), data=buf.getvalue(),
+                file_name=f"{params['title']}_preview.png", mime="image/png",
+                use_container_width=True,
+            )
+        else:
+            st.button(
+                f"🔒 {t('dl_preview_png', lang)}", disabled=True,
+                use_container_width=True,
+            )
     with d3:
-        pdf_bytes = generate_pdf(
-            pattern, chart_img, legend_img, info_img, preview_img
+        if can_export:
+            pdf_bytes = generate_pdf(
+                pattern, chart_img, legend_img, info_img, preview_img
+            )
+            st.download_button(
+                t("dl_pdf", lang), data=pdf_bytes,
+                file_name=f"{params['title']}.pdf", mime="application/pdf",
+                use_container_width=True,
+            )
+        else:
+            st.button(
+                f"🔒 {t('dl_pdf', lang)}", disabled=True,
+                use_container_width=True,
+            )
+
+    st.subheader(t("share_section", lang))
+    s1, s2 = st.columns([1, 3])
+    with s1:
+        canvas_cm = pattern.canvas_size_cm
+        share_text = t("share_text", lang).format(
+            fabric=pattern.fabric_count,
+            w=pattern.width_stitches,
+            h=pattern.height_stitches,
+            cm_w=canvas_cm[0],
+            cm_h=canvas_cm[1],
+            n_colors=len(pattern.colors),
         )
-        st.download_button(
-            t("dl_pdf", lang), data=pdf_bytes,
-            file_name=f"{params['title']}.pdf", mime="application/pdf",
+        share_url_x = (
+            "https://x.com/intent/tweet?"
+            f"text={urllib.parse.quote(share_text)}&"
+            f"url={urllib.parse.quote(APP_SHARE_URL)}&"
+            f"hashtags={urllib.parse.quote('クロスステッチ図案メーカー')}"
         )
+        st.link_button(
+            t("share_to_x", lang), share_url_x, use_container_width=True
+        )
+    with s2:
+        if can_export:
+            st.caption(t("share_hint_pro", lang))
+        else:
+            st.caption(t("share_hint_free", lang))
 
 
 def main() -> None:
