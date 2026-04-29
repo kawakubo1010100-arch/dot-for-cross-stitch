@@ -6,7 +6,7 @@ import io
 import numpy as np
 import streamlit as st
 from PIL import Image
-from streamlit_drawable_canvas import st_canvas
+from PIL import ImageDraw
 from streamlit_image_coordinates import streamlit_image_coordinates
 
 import background_editor as bg
@@ -33,10 +33,8 @@ def _init_state() -> None:
         st.session_state.pattern = None
     if "last_click_xy" not in st.session_state:
         st.session_state.last_click_xy = None
-    if "processed_rect_count" not in st.session_state:
-        st.session_state.processed_rect_count = 0
-    if "rect_canvas_seq" not in st.session_state:
-        st.session_state.rect_canvas_seq = 0
+    if "rect_first_click" not in st.session_state:
+        st.session_state.rect_first_click = None
 
 
 def _push_history(mask: np.ndarray) -> None:
@@ -287,77 +285,70 @@ def _render_bg_editor_tab(params: dict) -> None:
     with col_l:
         view_img = bg.render_editor_view(src.pixels, mask, scale=scale)
 
+        rect_first = st.session_state.rect_first_click if tool_mode == "rect" else None
+
         if tool_mode == "rect":
-            st.caption(t("rect_help", lang))
-            stroke_color = "#00ff00" if click_mode == "add" else "#ff8800"
-            canvas_key = (
-                f"rect_canvas_{sh}x{sw}_{scale}_{st.session_state.rect_canvas_seq}"
-            )
-            canvas_result = st_canvas(
-                fill_color="rgba(0, 255, 0, 0.2)" if click_mode == "add"
-                else "rgba(255, 136, 0, 0.2)",
-                stroke_width=2,
-                stroke_color=stroke_color,
-                background_image=view_img,
-                update_streamlit=True,
-                height=sh * scale,
-                width=sw * scale,
-                drawing_mode="rect",
-                key=canvas_key,
-            )
-            if canvas_result.json_data is not None:
-                objs = canvas_result.json_data.get("objects", [])
-                processed = st.session_state.processed_rect_count
-                if len(objs) > processed:
-                    cur_mask = mask
-                    for obj in objs[processed:]:
-                        if obj.get("type") != "rect":
-                            continue
-                        left = obj.get("left", 0)
-                        top = obj.get("top", 0)
-                        width = obj.get("width", 0) * obj.get("scaleX", 1)
-                        height = obj.get("height", 0) * obj.get("scaleY", 1)
-                        x0 = left / scale
-                        y0 = top / scale
-                        x1 = (left + width) / scale
-                        y1 = (top + height) / scale
-                        cur_mask = bg.apply_rect(
-                            cur_mask, x0, y0, x1, y1,
-                            value=(click_mode == "add"),
-                        )
-                    st.session_state.processed_rect_count = len(objs)
-                    _apply_mask_change(cur_mask)
-                    st.session_state.rect_canvas_seq += 1
-                    st.session_state.processed_rect_count = 0
+            if rect_first is not None:
+                fx, fy = rect_first
+                view_img = view_img.copy()
+                d = ImageDraw.Draw(view_img)
+                marker_color = (0, 255, 0) if click_mode == "add" else (255, 136, 0)
+                px = fx * scale + scale // 2
+                py = fy * scale + scale // 2
+                r = max(4, scale * 2)
+                d.ellipse(
+                    [px - r, py - r, px + r, py + r],
+                    outline=marker_color, width=2,
+                )
+                st.caption(t("rect_step2", lang))
+                if st.button(t("rect_cancel", lang)):
+                    st.session_state.rect_first_click = None
                     st.rerun()
-        else:
-            clicked = streamlit_image_coordinates(
-                view_img,
-                key=f"editor_click_{tool_mode}_{sh}x{sw}_{scale}",
-            )
+            else:
+                st.caption(t("rect_step1", lang))
 
-            if clicked is not None:
-                cx = clicked["x"] // scale
-                cy = clicked["y"] // scale
-                click_id = (cx, cy, st.session_state.history_idx)
+        widget_key = (
+            f"editor_click_{tool_mode}_{sh}x{sw}_{scale}_"
+            f"{st.session_state.history_idx}_"
+            f"{1 if rect_first else 0}"
+        )
+        clicked = streamlit_image_coordinates(view_img, key=widget_key)
 
-                if st.session_state.last_click_xy != click_id:
-                    st.session_state.last_click_xy = click_id
-                    if tool_mode == "flood":
-                        if click_mode == "add":
-                            new_mask = bg.flood_fill_add(
-                                src.pixels, mask, int(cx), int(cy), tolerance=tolerance
-                            )
-                        else:
-                            new_mask = bg.flood_fill_remove(
-                                src.pixels, mask, int(cx), int(cy), tolerance=tolerance
-                            )
-                    else:
-                        new_mask = bg.set_pixel(
-                            mask, int(cx), int(cy), value=(click_mode == "add")
-                        )
+        if clicked is not None:
+            cx = int(clicked["x"]) // scale
+            cy = int(clicked["y"]) // scale
+            cx = max(0, min(sw - 1, cx))
+            cy = max(0, min(sh - 1, cy))
+
+            if tool_mode == "rect":
+                if rect_first is None:
+                    st.session_state.rect_first_click = (cx, cy)
+                    st.rerun()
+                else:
+                    fx, fy = rect_first
+                    new_mask = bg.apply_rect(
+                        mask, fx, fy, cx + 1, cy + 1,
+                        value=(click_mode == "add"),
+                    )
+                    st.session_state.rect_first_click = None
                     _apply_mask_change(new_mask)
                     st.rerun()
+            else:
+                if tool_mode == "flood":
+                    if click_mode == "add":
+                        new_mask = bg.flood_fill_add(
+                            src.pixels, mask, cx, cy, tolerance=tolerance
+                        )
+                    else:
+                        new_mask = bg.flood_fill_remove(
+                            src.pixels, mask, cx, cy, tolerance=tolerance
+                        )
+                else:
+                    new_mask = bg.set_pixel(
+                        mask, cx, cy, value=(click_mode == "add")
+                    )
+                _apply_mask_change(new_mask)
+                st.rerun()
 
 
 def _render_pattern_tab(params: dict) -> None:
