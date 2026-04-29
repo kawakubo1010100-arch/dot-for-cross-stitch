@@ -60,9 +60,17 @@ def _add_watermark(img: Image.Image, text: str = "サンプル") -> Image.Image:
     return out.convert("RGB")
 
 
+TUTORIAL_TOTAL_STEPS = 6
+
+
 def _init_state() -> None:
     if "lang" not in st.session_state:
         st.session_state.lang = detect_browser_language()
+    if "show_tutorial" not in st.session_state:
+        seen = st.query_params.get("seen", "")
+        st.session_state.show_tutorial = (seen != "1")
+    if "tutorial_step" not in st.session_state:
+        st.session_state.tutorial_step = 0
     if "source" not in st.session_state:
         st.session_state.source = None
     if "source_hash" not in st.session_state:
@@ -119,11 +127,66 @@ def _on_new_image(image_bytes: bytes) -> None:
     st.session_state.last_imported_mask = None
 
 
+def _render_tutorial(lang: str) -> None:
+    if not st.session_state.show_tutorial:
+        return
+    step = st.session_state.tutorial_step
+
+    def _close():
+        st.session_state.show_tutorial = False
+        st.session_state.tutorial_step = 0
+        st.query_params["seen"] = "1"
+
+    with st.container(border=True):
+        top_l, top_r = st.columns([5, 1])
+        with top_l:
+            st.markdown(
+                f"### 📖 {t('tutorial_title', lang)} "
+                f"（{step + 1} / {TUTORIAL_TOTAL_STEPS}）"
+            )
+        with top_r:
+            if st.button(t("tutorial_close", lang), key=f"tut_close_{step}",
+                         use_container_width=True):
+                _close()
+                st.rerun()
+
+        st.markdown(t(f"tutorial_step_{step + 1}", lang))
+
+        nav_l, nav_c, nav_r = st.columns([1, 3, 1])
+        with nav_l:
+            if step > 0:
+                if st.button(t("tutorial_prev", lang), key=f"tut_prev_{step}",
+                             use_container_width=True):
+                    st.session_state.tutorial_step -= 1
+                    st.rerun()
+        with nav_r:
+            if step < TUTORIAL_TOTAL_STEPS - 1:
+                if st.button(t("tutorial_next", lang), key=f"tut_next_{step}",
+                             use_container_width=True, type="primary"):
+                    st.session_state.tutorial_step += 1
+                    st.rerun()
+            else:
+                if st.button(t("tutorial_done", lang), key=f"tut_done_{step}",
+                             use_container_width=True, type="primary"):
+                    _close()
+                    st.rerun()
+
+
 def _render_sidebar() -> dict:
     lang = st.session_state.lang
     is_pro = _check_pro()
 
     with st.sidebar:
+        if st.button(
+            t("tutorial_button", lang), use_container_width=True,
+            key="tutorial_open_btn",
+        ):
+            st.session_state.show_tutorial = True
+            st.session_state.tutorial_step = 0
+            if "seen" in st.query_params:
+                del st.query_params["seen"]
+            st.rerun()
+
         if is_pro:
             st.success(t("pro_active", lang))
         else:
@@ -601,6 +664,8 @@ def main() -> None:
     st.caption(t("caption", lang))
 
     params = _render_sidebar()
+    _render_tutorial(lang)
+
     if st.session_state.source is None:
         st.info(t("info_message", lang))
         return

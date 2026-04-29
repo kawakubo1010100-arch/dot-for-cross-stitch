@@ -72,6 +72,176 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "share_text": "クロスステッチの図案を作ったよ ✂️\n{fabric}ct / {w}×{h}st / {cm_w}×{cm_h}cm / {n_colors}色\n",
         "share_hint_pro": "ボタンを押すと投稿画面が開きます。ダウンロードした画像も一緒に添付できます。",
         "share_hint_free": "現在は無料版のため画像DL不可。テキストだけシェアできます（解除コードで画像も添付可能に）。",
+        "tutorial_title": "はじめての方へ ─ 使い方ガイド",
+        "tutorial_button": "❓ 使い方ガイドを見る",
+        "tutorial_close": "✕ 閉じる",
+        "tutorial_prev": "← 前へ",
+        "tutorial_next": "次へ →",
+        "tutorial_done": "✓ はじめる",
+        "tutorial_step_1": """
+#### ようこそ！🎨
+
+このアプリは、お手持ちの **写真をクロスステッチの図案に自動変換** するツールです。
+
+例えばペットの写真や好きな風景写真を投げ込むだけで、
+- マス目に色や記号が割り当てられた図案
+- 必要な糸の番号と色名のリスト
+- 仕上がりサイズ（cm）
+
+がパッと出てきます。プログラミングの知識は一切いりません。
+
+このガイドでは全6ステップで使い方を説明していきます。**「次へ」ボタンで進んでください。**
+
+---
+
+🔰 **完全に初心者でも大丈夫です。** 用語が分からなくても、ガイド通り進めれば作れます。
+""",
+        "tutorial_step_2": """
+#### ステップ1：写真をアップロードしましょう 📷
+
+画面の **左側にあるサイドバー**（細長い縦のエリア）を見てください。
+
+「**画像をアップロード**」というボタンがあります。ここをクリックして、図案にしたい写真を選びます。
+
+##### こんな写真がうまくいきます
+
+- ✅ 主役（人・動物・物）がはっきり写っている
+- ✅ 背景がシンプル（or 後で除去できる）
+- ✅ 明るすぎず暗すぎない
+
+##### こんな写真は難しいかも
+
+- ⚠️ ピンボケしてる写真
+- ⚠️ 主役と背景が同じような色
+- ⚠️ 細かいパターンの服や柄物
+
+写真は **JPG / PNG** どちらでもOK。サイズはアプリ側で自動調整されるので、スマホで撮った大きい写真でも大丈夫です。
+
+サイドバーが見えない場合は、画面左上の **「>」** マークをクリックすると開きます。
+""",
+        "tutorial_step_3": """
+#### ステップ2：サイズと色数を決めましょう 📐
+
+写真をアップしたら、サイドバーで **どのくらいの大きさ・何色で作るか** を決めます。
+
+##### ステッチ数（マスの数）
+
+「**幅（ステッチ数）**」のスライダーで、何マス × 何マスにするかを決めます。
+- **20〜30**：ワッペン、ピンバッジサイズ（3〜5cm）
+- **50〜80**：コースター、ミニ額（9〜14cm）
+- **100以上**：壁掛け、本格作品（18cm〜）
+
+スライダーを動かすたびに、サイドバー下に **「📐 キャンパスサイズ：12.0 × 14.5 cm」** みたいな表示が出ます。これが完成サイズの目安です。
+
+##### 布カウント
+
+「**布カウント**」は、布の目の細かさです。**14カウント** が標準（ホビー店で一番売ってます）。
+
+数字が大きいほど目が細かく、繊細な仕上がりになりますが難易度も上がります。
+
+##### 色数
+
+「**最大色数**」で、何色の糸を使うか決めます。
+- **2〜4色**：シンプルなロゴ・キャラクター向け
+- **6〜10色**：標準的な絵柄
+- **15色以上**：写真っぽいリアルな仕上がり
+
+🔓 **無料版は 30ステッチ × 4色まで全機能使えます。** それ以上は note記事の解除コード（1,000円・買い切り）で全機能解放されます。
+""",
+        "tutorial_step_4": """
+#### ステップ3：背景を消しましょう（とても便利） 🪄
+
+写真には主役以外の余分な背景が写っていることが多いですよね。
+
+このアプリでは **「1. 背景除去」タブ** で、背景を範囲指定して図案から除外できます。背景を消すと：
+
+- 糸の使用量が減る
+- 主役だけがくっきり浮き上がる
+- 仕上がりが綺麗
+
+##### 背景を消す3つの方法
+
+**🟢 連結同色フィル（おすすめ）**
+クリックすると、繋がっている同じ色の領域がパッと一括選択されます。背景が単色っぽい時はこれが最速。
+
+**🟢 範囲選択（ドラッグ）**
+画像の上で四角くドラッグすると、その範囲がまるごと選択されます。広いエリアを一気に消したい時に。
+
+**🟢 1ドットトグル**
+1マスずつ細かく調整したい時用。
+
+##### 「＋ 除外に追加」と「ー 除外から戻す」
+
+クリックの動作はボタンで切り替えます：
+- **＋モード**：クリックした部分を背景として除外
+- **ーモード**：間違って除外しちゃった部分を戻す
+
+##### その他の便利機能
+
+- ⏪ **アンドゥ／リドゥ**：直前の操作を取り消し・やり直し
+- 🪄 **エッジ領域を自動マスク**：画像の端っこを一発で背景判定（だいたい背景は端から始まるので便利）
+- 💾 **マスクをPNGで保存**：作業を保存して後で続きから
+
+赤くなっている部分が「除外される（=刺さない）」マスです。
+""",
+        "tutorial_step_5": """
+#### ステップ4：図案を生成して確認しましょう ✨
+
+背景が消せたら、いよいよ図案の生成です。
+
+**「2. 図案生成」タブ** に切り替えて、**「図案を再生成」ボタン**（紫のやつ）を押してください。
+
+数秒待つと出てくるもの：
+
+##### 1. カラープレビュー
+仕上がりイメージ。実物に近い見た目で出ます。「あ、これ可愛い！」って判断する用。
+
+##### 2. 図案情報
+- **キャンパスサイズ**：用意する布のサイズ
+- **仕上がりサイズ**：実際の作品サイズ（背景を除いた範囲）
+- 使用色数、本どり数 など
+
+##### 3. 図案本体（記号入り）
+マス目に色と記号が入った、実際に刺すときに見るやつ。10マスごとに太い線が引いてあります。
+
+##### 4. 色凡例
+**「どの記号がどの糸か」** の対応表。糸を買うときはこれを見て注文します。
+
+「DMC + オリンパス」を選んでおくと両メーカーの番号が出ます。日本のホビー店なら **オリンパス** で揃えやすいです。
+
+##### 結果が気に入らなかったら？
+
+サイドバーに戻ってサイズや色数を調整して、もう一度「図案を再生成」を押すだけ。何度でもやり直せます。
+""",
+        "tutorial_step_6": """
+#### ステップ5：印刷して刺してみよう 🧵
+
+気に入った図案ができたら、ダウンロードして印刷します。
+
+##### ダウンロードできるもの
+
+- 📷 **図案 PNG**：マス目に記号入りの画像
+- 📷 **プレビュー PNG**：仕上がりイメージ画像
+- 📄 **PDF**：印刷用に整えられた書類（複数ページにまたがる場合は自動分割）
+
+A4サイズで印刷して、見ながら刺していきます。
+
+##### 刺すときのコツ
+
+- **中心から始める**：図案の四辺に矢印（▽▷）が入っているので、その交点の中心マスからスタート
+- **1色ずつ進める**：同じ色をまとめて刺すと効率的
+- **本どり数**：14countなら3本どりが標準。お好みで調整
+
+##### Xでシェアもできます
+
+完成した作品やプレビュー画面を **#クロスステッチ図案メーカー** で投稿してくれたら嬉しいです。図案生成画面の「Xで共有」ボタンから、本文付きの投稿画面が開きます。
+
+---
+
+🎉 **これでガイドは終わりです！** 「✓ はじめる」ボタンを押して、楽しんでください。
+
+困った時はサイドバー上部の **「❓ 使い方ガイドを見る」** ボタンでいつでも再表示できます。
+""",
         "color_count_unit": "色",
         "strand_unit": "本どり",
         "edit_no_pattern": "先に「図案を生成」ボタンで初期パターンを生成してください。",
@@ -180,6 +350,114 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "share_text": "Made a cross-stitch pattern ✂️\n{fabric}ct / {w}×{h}st / {cm_w}×{cm_h}cm / {n_colors} colors\n",
         "share_hint_pro": "Click to open the share window. Attach the downloaded image too.",
         "share_hint_free": "Free tier — image DL disabled. Share text only (unlock to attach images).",
+        "tutorial_title": "Quick Start Guide",
+        "tutorial_button": "❓ Show usage guide",
+        "tutorial_close": "✕ Close",
+        "tutorial_prev": "← Prev",
+        "tutorial_next": "Next →",
+        "tutorial_done": "✓ Start",
+        "tutorial_step_1": """
+#### Welcome! 🎨
+
+This app turns your photos into cross-stitch patterns automatically.
+
+Drop in a pet photo or landscape, and you get:
+- A grid pattern with colors and symbols
+- A list of thread numbers and color names
+- Finished size in cm
+
+No coding knowledge needed. This 6-step guide will walk you through.
+""",
+        "tutorial_step_2": """
+#### Step 1: Upload a photo 📷
+
+Look at the **left sidebar**. Click **"Upload image"** and choose your photo.
+
+##### Photos that work well
+- ✅ Clear subject
+- ✅ Simple background (or one you can mask later)
+- ✅ Well-lit
+
+##### Tricky photos
+- ⚠️ Blurry images
+- ⚠️ Subject and background too similar
+- ⚠️ Busy patterns
+
+JPG or PNG. Large files are auto-resized.
+""",
+        "tutorial_step_3": """
+#### Step 2: Pick size and colors 📐
+
+Use the sidebar sliders to set width/height in stitches.
+
+- **20–30 stitches**: patch/pin size (~3–5 cm)
+- **50–80**: coaster/mini frame (~9–14 cm)
+- **100+**: wall art (~18 cm+)
+
+A live cm preview appears below.
+
+**Fabric count** = mesh density. **14ct** is standard.
+
+**Max colors** = thread variety. 4 for simple, 10 for natural, 15+ for photo-realistic.
+
+🔓 **Free tier: up to 30 stitches × 4 colors with full features.** Beyond that requires the unlock code (¥1,000 one-time, from the note article).
+""",
+        "tutorial_step_4": """
+#### Step 3: Remove background 🪄
+
+In the **"1. Background removal"** tab, mask out the background.
+
+##### Three tools
+
+- **Connected fill**: click to select a connected same-color region (fast)
+- **Rectangle (drag)**: drag to mask a rectangular area
+- **Single pixel**: precise pixel-by-pixel
+
+##### Add/Remove modes
+- **+ mode**: click adds to mask
+- **− mode**: click removes from mask
+
+##### Bonus
+- **Undo/Redo** for any mistake
+- **Auto-mask edges**: one click to flood from image borders
+- **Export/Import mask PNG** to save your work
+
+Red regions = will not be stitched.
+""",
+        "tutorial_step_5": """
+#### Step 4: Generate your pattern ✨
+
+Switch to the **"2. Pattern generation"** tab and click **"Regenerate pattern"**.
+
+You get:
+1. **Color preview** — what it looks like
+2. **Pattern info** — canvas size, finished size, colors
+3. **Symbol chart** — actual stitching guide with grid + symbols
+4. **Color legend** — thread numbers and names (DMC and/or Olympus)
+
+If unhappy, just adjust sliders and regenerate.
+""",
+        "tutorial_step_6": """
+#### Step 5: Print and stitch! 🧵
+
+Download options:
+- **Chart PNG** (with symbols)
+- **Preview PNG** (color only)
+- **PDF** (auto-paginated for printing)
+
+Tips:
+- **Start from the center** (look for the arrow marks on chart edges)
+- **One color at a time** is efficient
+- **3 strands** is standard for 14-count
+
+Tag your finished work **#クロスステッチ図案メーカー** on X — share button is on the pattern page.
+
+---
+
+🎉 You're ready! Click "✓ Start" to begin.
+
+Need help later? Click "❓ Show usage guide" in the sidebar anytime.
+""",
         "color_count_unit": " colors",
         "strand_unit": " strands",
         "edit_no_pattern": "Please generate an initial pattern first.",
