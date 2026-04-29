@@ -161,10 +161,39 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 - 主役だけがくっきり浮き上がる
 - 仕上がりが綺麗
 
-##### 背景を消す3つの方法
+---
+
+##### 💡 ちょっとした近道：先に他のツールで背景を抜くのが楽
+
+実は、このアプリの背景除去ツールよりも、先に **他のツールで背景を除去した画像** を読み込ませるほうが速いことが多いです。
+
+おすすめツール（無料・登録不要）：
+- **[remove.bg](https://www.remove.bg/)** — AIが自動で背景を抜いてくれる、超有名なやつ
+- **iPhoneの「写真」アプリ** — 被写体を長押しで切り抜きできる（iOS 16以降）
+- **Canva・Photoshop** など使い慣れたツール
+
+切り抜いた画像（PNG）をこのアプリにアップロードすれば、ほとんど作業せずに済みます。
+
+---
+
+##### ⚠️ 透明背景PNGを読み込むときの大事な注意
+
+切り抜き済みのPNG画像をアップロードすると、**透明な部分は単色（多くの場合 緑 や 黒 など）として扱われます**。このまま図案を作ると、**その背景色が1色として図案に含まれてしまいます**。
+
+なので、切り抜き済み画像を使う場合も：
+
+1. アップロード後に「1. 背景除去」タブを開く
+2. **緑（または黒）の背景部分をクリック** → 連結同色フィルで一発選択される
+3. これで透明部分がマスクされて、図案に含まれなくなります
+
+このひと手間を忘れると「背景が緑色の糸で1色分使われちゃった！」となるので注意してください。
+
+---
+
+##### 背景を消す3つの方法（手動でやる場合）
 
 **🟢 連結同色フィル（おすすめ）**
-クリックすると、繋がっている同じ色の領域がパッと一括選択されます。背景が単色っぽい時はこれが最速。
+クリックすると、繋がっている同じ色の領域がパッと一括選択されます。背景が単色っぽい時はこれが最速。**切り抜き済み画像の透明部分にもこれを使います**。
 
 **🟢 範囲選択（ドラッグ）**
 画像の上で四角くドラッグすると、その範囲がまるごと選択されます。広いエリアを一気に消したい時に。
@@ -411,9 +440,36 @@ A live cm preview appears below.
 
 In the **"1. Background removal"** tab, mask out the background.
 
-##### Three tools
+---
 
-- **Connected fill**: click to select a connected same-color region (fast)
+##### 💡 Shortcut: pre-remove background with another tool
+
+Often it's faster to **remove the background with another tool first** and upload the cleaned image.
+
+Free tools we recommend:
+- **[remove.bg](https://www.remove.bg/)** — AI auto background removal
+- **iPhone Photos app** — long-press subject to cut out (iOS 16+)
+- **Canva, Photoshop**, etc.
+
+---
+
+##### ⚠️ Important: when uploading a transparent PNG
+
+Pre-cut PNG images have transparent backgrounds, but when loaded here, **transparent areas become a solid color (often green or black)**. If left as-is, that color will appear as a thread in your pattern.
+
+So even with pre-cut images:
+
+1. Open the "1. Background removal" tab after uploading
+2. **Click on the green (or black) area** with the Connected fill tool — it'll select all of it instantly
+3. Now the transparent area is masked and won't appear in the pattern
+
+Don't forget this step or you'll end up with "1 color of green thread for the background"!
+
+---
+
+##### Three tools (for manual work)
+
+- **Connected fill**: click to select a connected same-color region (fast). **Use this on the transparent area of pre-cut images too**.
 - **Rectangle (drag)**: drag to mask a rectangular area
 - **Single pixel**: precise pixel-by-pixel
 
