@@ -21,8 +21,13 @@ HISTORY_LIMIT = 30
 SECRET_CODE = "stitch-pro-2026"
 WIDTH_FREE = 30
 COLORS_FREE = 4
-NOTE_URL = "https://note.com/1010100_nohunohu/n/n671e09605d99"
+NOTE_URL_JA = "https://note.com/1010100_nohunohu/n/n671e09605d99"
+GUMROAD_URL_EN = "https://nohunohu.gumroad.com/l/aguat"
 APP_SHARE_URL = "https://dot-cross-stitch.streamlit.app/"
+
+
+def _purchase_url(lang: str) -> str:
+    return GUMROAD_URL_EN if lang == "en" else NOTE_URL_JA
 
 
 def _check_pro() -> bool:
@@ -200,7 +205,7 @@ def _render_sidebar() -> dict:
             st.success(t("pro_active", lang))
         else:
             with st.expander(t("unlock_section", lang), expanded=False):
-                st.markdown(t("unlock_intro", lang).format(url=NOTE_URL))
+                st.markdown(t("unlock_intro", lang).format(url=_purchase_url(lang)))
                 code = st.text_input(t("unlock_code_label", lang), type="password")
                 if st.button(t("unlock_button", lang), use_container_width=True):
                     if code == SECRET_CODE:
@@ -561,7 +566,7 @@ def _render_pattern_tab(params: dict) -> None:
 
     if not can_export:
         st.info(t("preview_only_notice", lang).format(
-            w=WIDTH_FREE, c=COLORS_FREE, url=NOTE_URL
+            w=WIDTH_FREE, c=COLORS_FREE, url=_purchase_url(lang)
         ))
 
     col1, col2 = st.columns(2)
