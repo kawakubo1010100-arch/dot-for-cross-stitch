@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://kawakubo1010100-arch.github.io/dot-for-cross-stitch/sitemap.xml
